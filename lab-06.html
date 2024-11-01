@@ -371,7 +371,45 @@ library(ggplot2)</code></pre>
 </div>
 <div id="exercise-1" class="section level2">
 <h2>Exercise 1</h2>
-<pre class="r"><code># Do some preliminary investigations &amp; cleaning</code></pre>
+<pre class="r"><code># Do some preliminary investigations &amp; cleaning
+
+#Frequency Table of cut type
+
+diamonds %&gt;%
+  group_by(cut) %&gt;%
+  summarise(
+    count = n()
+  )</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   cut       count
+##   &lt;ord&gt;     &lt;int&gt;
+## 1 Fair       1610
+## 2 Good       4906
+## 3 Very Good 12082
+## 4 Premium   13791
+## 5 Ideal     21551</code></pre>
+<pre class="r"><code>#Frequency table of clarity
+
+diamonds %&gt;%
+  group_by(clarity) %&gt;%
+  summarise(
+    count = n()
+  )</code></pre>
+<pre><code>## # A tibble: 8 × 2
+##   clarity count
+##   &lt;ord&gt;   &lt;int&gt;
+## 1 I1        741
+## 2 SI2      9194
+## 3 SI1     13065
+## 4 VS2     12258
+## 5 VS1      8171
+## 6 VVS2     5066
+## 7 VVS1     3655
+## 8 IF       1790</code></pre>
+<pre class="r"><code>#Filtering and removing problematic measurements
+
+diamonds &lt;- diamonds %&gt;%
+  filter(length_mm != 0 | width_mm != 0 | depth_mm != 0)</code></pre>
 </div>
 <div id="exercise-2" class="section level2">
 <h2>Exercise 2</h2>
@@ -380,18 +418,63 @@ library(ggplot2)</code></pre>
 
 # Overall table_mm arithmetic mean?
 
+diamonds %&gt;%
+  summarise(
+    mean_table = mean(table_mm)
+  )</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   mean_table
+##        &lt;dbl&gt;
+## 1       3.30</code></pre>
+<pre class="r"><code># table_mm arithmetic mean within each clarity category
 
+diamonds %&gt;% 
+  group_by(clarity) %&gt;%
+  summarise(
+    mean_table = mean(table_mm)
+  )</code></pre>
+<pre><code>## # A tibble: 8 × 2
+##   clarity mean_table
+##   &lt;ord&gt;        &lt;dbl&gt;
+## 1 I1            3.91
+## 2 SI2           3.71
+## 3 SI1           3.40
+## 4 VS2           3.25
+## 5 VS1           3.20
+## 6 VVS2          2.98
+## 7 VVS1          2.83
+## 8 IF            2.82</code></pre>
+<p>It appears that, as the diamond becomes clearer I1 to IF, the average
+table length decreases.</p>
+<pre class="r"><code># calculate the arithmetic mean across all numeric variables
 
-
-
-
-# table_mm arithmetic mean within each clarity category</code></pre>
-<p><em>Add your comment here</em></p>
-<pre class="r"><code># calculate the arithmetic mean across all numeric variables</code></pre>
+diamonds %&gt;%
+  summarise(
+    across(where(is.double), mean, .names = &quot;avg_{col}&quot;)
+  )</code></pre>
+<pre><code>## # A tibble: 1 × 7
+##   avg_carat avg_depth_pct avg_table_pct avg_length_mm avg_width_mm avg_depth_mm
+##       &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+## 1     0.798          61.7          57.5          5.73         5.74         3.54
+## # ℹ 1 more variable: avg_table_mm &lt;dbl&gt;</code></pre>
 </div>
 <div id="exercise-3" class="section level2">
 <h2>Exercise 3</h2>
-<pre class="r"><code># Write gmean() command</code></pre>
+<pre class="r"><code># # Write gmean() command
+
+gmean &lt;- function(x){
+  n = length(x)
+  
+  sum = 0
+  
+  for (i in 1:n){
+    sum = sum + log(x[i])
+  }
+  
+  geo_mean &lt;- exp((1/n) * sum)
+  
+  return(geo_mean)
+}</code></pre>
 </div>
 <div id="exercise-4" class="section level2">
 <h2>Exercise 4</h2>
@@ -405,21 +488,76 @@ library(ggplot2)</code></pre>
 )
 
 
-# Create for loop to test gmean() on the above examples</code></pre>
+# Create for loop to test gmean() on the above examples
+
+for (i in 1:length(test_data)){
+  print(gmean(test_data[[i]]))
+}</code></pre>
+<pre><code>## [1] 3.224166
+## [1] 31.62278
+## [1] 0</code></pre>
+<pre><code>## Warning in log(x[i]): NaNs produced</code></pre>
+<pre><code>## [1] NaN
+## [1] 1</code></pre>
+<pre><code>## Error in log(x[i]): non-numeric argument to mathematical function</code></pre>
 </div>
 <div id="exercise-5" class="section level2">
 <h2>Exercise 5</h2>
 <pre class="r"><code># Copy gmean() from Ex 3 and edit it to check the input
 
+gmean &lt;- function(x){
+  
+  if( any(x &lt;= 0) ){
+    warning(&quot;Enter stricly positive data only.&quot;)
+    return(NaN)
+  }
+  
+  if( !any(is.numeric(x))){
+    warning(&quot;Enter numeric data only&quot;)
+    return(NaN)
+  }
+  
+  n = length(x)
+  
+  sum = 0
+  
+  for (i in 1:n){
+    sum = sum + log(x[i])
+  }
+  
+  geo_mean &lt;- exp((1/n) * sum)
+  
+  return(geo_mean)
+}
 
 
+# Copy your code from Ex 4 to test your new command
 
-
-# Copy your code from Ex 4 to test your new command</code></pre>
+for (i in 1:length(test_data)){
+  print(gmean(test_data[[i]]))
+}</code></pre>
+<pre><code>## [1] 3.224166
+## [1] 31.62278</code></pre>
+<pre><code>## Warning in gmean(test_data[[i]]): Enter stricly positive data only.</code></pre>
+<pre><code>## [1] NaN</code></pre>
+<pre><code>## Warning in gmean(test_data[[i]]): Enter stricly positive data only.</code></pre>
+<pre><code>## [1] NaN</code></pre>
+<pre><code>## Warning in gmean(test_data[[i]]): Enter numeric data only</code></pre>
+<pre><code>## [1] NaN</code></pre>
+<pre><code>## Warning in gmean(test_data[[i]]): Enter numeric data only</code></pre>
+<pre><code>## [1] NaN</code></pre>
 </div>
 <div id="exercise-6" class="section level2">
 <h2>Exercise 6</h2>
-<pre class="r"><code># replicate the for loop from Ex 4 using the map (or a similar) function</code></pre>
+<pre class="r"><code># replicate the for loop from Ex 4 using the map (or a similar) function
+
+map_dbl(test_data, gmean)</code></pre>
+<pre><code>## Warning in .f(.x[[i]], ...): Enter stricly positive data only.
+## Warning in .f(.x[[i]], ...): Enter stricly positive data only.</code></pre>
+<pre><code>## Warning in .f(.x[[i]], ...): Enter numeric data only
+## Warning in .f(.x[[i]], ...): Enter numeric data only</code></pre>
+<pre><code>##     test1     test2     test3     test4     test5     test6 
+##  3.224166 31.622777       NaN       NaN       NaN       NaN</code></pre>
 </div>
 <div id="exercise-7" class="section level2">
 <h2>Exercise 7</h2>

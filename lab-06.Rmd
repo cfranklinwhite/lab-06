@@ -29,6 +29,27 @@ diamonds <- diamonds %>% rename(
 ```{r}
 # Do some preliminary investigations & cleaning
 
+#Frequency Table of cut type
+
+diamonds %>%
+  group_by(cut) %>%
+  summarise(
+    count = n()
+  )
+  
+
+#Frequency table of clarity
+
+diamonds %>%
+  group_by(clarity) %>%
+  summarise(
+    count = n()
+  )
+
+#Filtering and removing problematic measurements
+
+diamonds <- diamonds %>%
+  filter(length_mm != 0 | width_mm != 0 | depth_mm != 0)
 
 
 
@@ -44,13 +65,18 @@ diamonds <- diamonds %>%
 
 # Overall table_mm arithmetic mean?
 
-
-
-
-
+diamonds %>%
+  summarise(
+    mean_table = mean(table_mm)
+  )
 
 # table_mm arithmetic mean within each clarity category
 
+diamonds %>% 
+  group_by(clarity) %>%
+  summarise(
+    mean_table = mean(table_mm)
+  )
 
 
 
@@ -58,22 +84,36 @@ diamonds <- diamonds %>%
 
 ```
 
-_Add your comment here_
+It appears that, as the diamond becomes clearer I1 to IF, the average table length decreases. 
 
 ```{r}
 # calculate the arithmetic mean across all numeric variables
 
-
-
+diamonds %>%
+  summarise(
+    across(where(is.double), mean, .names = "avg_{col}")
+  )
 
 ```
 
 ## Exercise 3
 
 ```{r}
-# Write gmean() command
+# # Write gmean() command
 
-
+gmean <- function(x){
+  n = length(x)
+  
+  sum = 0
+  
+  for (i in 1:n){
+    sum = sum + log(x[i])
+  }
+  
+  geo_mean <- exp((1/n) * sum)
+  
+  return(geo_mean)
+}
 
 ```
 
@@ -93,6 +133,10 @@ test_data <- list(
 
 # Create for loop to test gmean() on the above examples
 
+for (i in 1:length(test_data)){
+  print(gmean(test_data[[i]]))
+}
+
 
 ```
 
@@ -102,13 +146,37 @@ test_data <- list(
 ```{r}
 # Copy gmean() from Ex 3 and edit it to check the input
 
-
-
+gmean <- function(x){
+  
+  if( any(x <= 0) ){
+    warning("Enter stricly positive data only.")
+    return(NaN)
+  }
+  
+  if( !any(is.numeric(x))){
+    warning("Enter numeric data only")
+    return(NaN)
+  }
+  
+  n = length(x)
+  
+  sum = 0
+  
+  for (i in 1:n){
+    sum = sum + log(x[i])
+  }
+  
+  geo_mean <- exp((1/n) * sum)
+  
+  return(geo_mean)
+}
 
 
 # Copy your code from Ex 4 to test your new command
 
-
+for (i in 1:length(test_data)){
+  print(gmean(test_data[[i]]))
+}
 
 
 
@@ -118,6 +186,8 @@ test_data <- list(
 
 ```{r}
 # replicate the for loop from Ex 4 using the map (or a similar) function
+
+map_dbl(test_data, gmean)
 
 ```
 
